@@ -2,13 +2,24 @@ const express = require('express')
 const bodyParser = require('body-parser')
 const path = require('path')
 const sequelize = require('./database');
-
+const cookieParser = require('cookie-parser')
 const User = require('./models/user')
 const Activity = require('./models/activity')
 
 const app = express();
 
 app.use(bodyParser.json());
+
+
+// ! custom getToken function which will look for the token on an incoming cookie
+app.use(cookieParser());
+
+app.use(
+    jwt({
+        secret: 'top_secret_key',
+        getToken: req => req.cookies.token
+    })
+);
 
 app.use((req, res, next) => {
     res.setHeader('Access-Control-Allow-Origin', '*')

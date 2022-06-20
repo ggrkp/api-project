@@ -2,56 +2,7 @@ const bcrypt = require('bcrypt')
 const jwt = require('jsonwebtoken')
 const User = require('../models/user')
 
-
-exports.createNewUser = (req, res, next) => {
-    const name = req.body.name
-    const email = req.body.email
-    const password = req.body.password
-    const is_admin = req.body.is_admin
-    bcrypt.hash(password, 12)
-        .then(hashedPw => User.create({
-            name: name,
-            email: email,
-            password: hashedPw,
-            is_admin: is_admin,
-        }))
-        .then(res.end('success'))
-        .catch((err) => { console.error(err) })
-}
-
-// exports.getAllUsers = (req, res) => {
-//     User.findAll()
-//         .then((users) => {
-//             res.json(users)
-//             console.log(users)
-//         })
-//         .catch(err => {
-//             console.error(err)
-//         })
-// }
-
-exports.getUserById = (req, res) => {
-    //! findAll approach
-    User.findAll({ where: { id: req.params.userId } })
-        .then((users) => {
-            res.json(users[0])
-            console.log(users[0])
-        })
-        .catch(err => {
-            console.error(err)
-        })
-
-    // !findByPk approach - same thing.
-    // User.findByPk(req.params.userId)
-    //     .then((user) => {
-    //         res.json(user)
-    //         console.log(user)
-    //     })
-    //     .catch(err => {
-    //         console.error(err)
-    //     })
-}
-
+// ! LOGIN CONTROLLER
 
 exports.login = (req, res, next) => {
     const email = req.body.email
@@ -85,7 +36,9 @@ exports.login = (req, res, next) => {
                 {
                     expiresIn: '1h'
                 })
-            res.status(200).json({ token: token, id: loadedUser.id.toString() })
+            //! set a cookie for the user authentication token JWT.
+            res.status(200).cookie('token', token, { httpOnly: true, expiresIn: '60' });
+            // res.status(200).json({ token: token, id: loadedUser.id.toString() })
         })
         .catch(err => {
             if (!err.statusCode) {
@@ -94,3 +47,52 @@ exports.login = (req, res, next) => {
             next(err)
         })
 }
+
+
+
+// ! SIGNUP CONTROLLER
+
+exports.createNewUser = (req, res, next) => {
+    const name = req.body.name
+    const email = req.body.email
+    const password = req.body.password
+    const is_admin = req.body.is_admin
+    bcrypt.hash(password, 12)
+        .then(hashedPw => User.create({
+            name: name,
+            email: email,
+            password: hashedPw,
+            is_admin: is_admin,
+        }))
+        .then(res.end('success'))
+        .catch((err) => { console.error(err) })
+}
+
+
+exports.getHello = (req, res, next) => {
+    res.end('successfully got Hello.')
+}
+
+
+// exports.getUserById = (req, res) => {
+//     // findAll approach
+//     User.findAll({ where: { id: req.params.userId } })
+//         .then((users) => {
+//             res.json(users[0])
+//             console.log(users[0])
+//         })
+//         .catch(err => {
+//             console.error(err)
+//         })
+
+    // findByPk approach - same thing.
+    // User.findByPk(req.params.userId)
+    //     .then((user) => {
+    //         res.json(user)
+    //         console.log(user)
+    //     })
+    //     .catch(err => {
+    //         console.error(err)
+    //     })
+// }
+
