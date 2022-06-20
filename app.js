@@ -5,7 +5,7 @@ const sequelize = require('./database');
 const cookieParser = require('cookie-parser')
 const User = require('./models/user')
 const Activity = require('./models/activity')
-
+var { expressjwt: jwt } = require("express-jwt");
 const app = express();
 
 app.use(bodyParser.json());
@@ -17,9 +17,12 @@ app.use(cookieParser());
 app.use(
     jwt({
         secret: 'top_secret_key',
-        getToken: req => req.cookies.token
-    })
+        getToken: req => req.cookies.token,
+        algorithms: ['HS256']
+    }).unless({ path: ["/api/login"] })
 );
+
+
 
 app.use((req, res, next) => {
     res.setHeader('Access-Control-Allow-Origin', '*')

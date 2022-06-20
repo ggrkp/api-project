@@ -22,7 +22,6 @@ exports.login = (req, res, next) => {
         .then((isEqual) => {
             if (!isEqual) {
                 const error = new Error('Password is incorrect.')
-
                 error.statusCode = 401
                 throw error
             }
@@ -37,7 +36,7 @@ exports.login = (req, res, next) => {
                     expiresIn: '1h'
                 })
             //! set a cookie for the user authentication token JWT.
-            res.status(200).cookie('token', token, { httpOnly: true, expiresIn: '60' });
+            res.status(200).cookie('token', token, { httpOnly: true });
             // res.status(200).json({ token: token, id: loadedUser.id.toString() })
         })
         .catch(err => {
@@ -70,7 +69,7 @@ exports.createNewUser = (req, res, next) => {
 
 
 exports.getHello = (req, res, next) => {
-    res.end('successfully got Hello.')
+    res.json({ message: "Hello from api" })
 }
 
 

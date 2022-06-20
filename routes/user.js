@@ -11,4 +11,6 @@ router.post('/create', userController.createNewUser);
 
 router.post('/api/login', userController.login);
 
+router.get('/api/hello', userController.getHello);
+
 module.exports = router;
