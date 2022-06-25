@@ -37,6 +37,7 @@ exports.login = (req, res, next) => {
                 })
             //! set a cookie for the user authentication token JWT.
             res.status(200).cookie('token', token, { httpOnly: true });
+            res.end('Success from api!')
             // res.status(200).json({ token: token, id: loadedUser.id.toString() })
         })
         .catch(err => {
@@ -50,7 +51,7 @@ exports.login = (req, res, next) => {
 
 
 // ! SIGNUP CONTROLLER
-
+// todo: check if email exists already in database.
 exports.createNewUser = (req, res, next) => {
     const name = req.body.name
     const email = req.body.email
@@ -71,27 +72,3 @@ exports.createNewUser = (req, res, next) => {
 exports.getHello = (req, res, next) => {
     res.json({ message: "Hello from api" })
 }
-
-
-// exports.getUserById = (req, res) => {
-//     // findAll approach
-//     User.findAll({ where: { id: req.params.userId } })
-//         .then((users) => {
-//             res.json(users[0])
-//             console.log(users[0])
-//         })
-//         .catch(err => {
-//             console.error(err)
-//         })
-
-    // findByPk approach - same thing.
-    // User.findByPk(req.params.userId)
-    //     .then((user) => {
-    //         res.json(user)
-    //         console.log(user)
-    //     })
-    //     .catch(err => {
-    //         console.error(err)
-    //     })
-// }
-

@@ -13,13 +13,12 @@ app.use(bodyParser.json());
 
 // ! custom getToken function which will look for the token on an incoming cookie
 app.use(cookieParser());
-
 app.use(
     jwt({
         secret: 'top_secret_key',
         getToken: req => req.cookies.token,
         algorithms: ['HS256']
-    }).unless({ path: ["/api/login"] })
+    }).unless({ path: ["/auth/login", "/auth/create"] })
 );
 
 

@@ -7,9 +7,9 @@ const isAuth = require('../middleware/is-auth')
 
 const router = express.Router()
 
-router.post('/create', userController.createNewUser);
+router.post('/auth/create', userController.createNewUser);
 
-router.post('/api/login', userController.login);
+router.post('/auth/login', userController.login);
 
 router.get('/api/hello', userController.getHello);
 
