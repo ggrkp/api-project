@@ -5,7 +5,11 @@ const sequelize = require('./database');
 const cookieParser = require('cookie-parser')
 const User = require('./models/user')
 const Activity = require('./models/activity')
-var { expressjwt: jwt } = require("express-jwt");
+const jwt = require('jsonwebtoken');
+// var { expressjwt: jwt } = require("express-jwt");
+
+
+
 const app = express();
 
 app.use(bodyParser.json());
@@ -13,13 +17,30 @@ app.use(bodyParser.json());
 
 // ! custom getToken function which will look for the token on an incoming cookie
 app.use(cookieParser());
-app.use(
-    jwt({
-        secret: 'top_secret_key',
-        getToken: req => req.cookies.token,
-        algorithms: ['HS256']
-    }).unless({ path: ["/auth/login", "/auth/create"] })
-);
+// app.use(
+//     jwt({
+//         secret: 'top_secret_key',
+//         getToken: req => req.cookies.token,
+//         algorithms: ['HS256']
+//     }).unless({ path: ["/auth/login", "/auth/signup"] })
+// );
+
+// app.use((req, res, next) => {
+//     const token = req.cookies.token
+//     try {
+//         decodedToken = jwt.verify(token, 'top_secret_key');
+//     } catch (err) {
+//         err.statusCode = 500;
+//         throw err;
+//     }
+//     if (!decodedToken) {
+//         const error = new Error('Not authenticated!');
+//         error.statusCode = 401;
+//         throw error;
+//     }
+//     req.userId = decodedToken.id;
+//     next();
+// })
 
 
 

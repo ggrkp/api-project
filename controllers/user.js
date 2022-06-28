@@ -36,9 +36,9 @@ exports.login = (req, res, next) => {
                     expiresIn: '1h'
                 })
             //! set a cookie for the user authentication token JWT.
-            res.status(200).cookie('token', token, { httpOnly: true });
-            res.end('Success from api!')
-            // res.status(200).json({ token: token, id: loadedUser.id.toString() })
+            // res.cookie('token', token,);
+            res.status(200).json({ token: token, id: loadedUser.id.toString(), isAdmin: loadedUser.is_admin })
+            // res.end('Success from api!')
         })
         .catch(err => {
             if (!err.statusCode) {
@@ -71,4 +71,9 @@ exports.createNewUser = (req, res, next) => {
 
 exports.getHello = (req, res, next) => {
     res.json({ message: "Hello from api" })
+}
+
+exports.logout = (req, res, next) => {
+    res.clearCookie('token')
+    res.end()
 }

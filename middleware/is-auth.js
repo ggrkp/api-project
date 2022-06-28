@@ -1,5 +1,6 @@
-
 const jwt = require('jsonwebtoken');
+
+// * Verify token on requests.
 
 module.exports = (req, res, next) => {
   const authHeader = req.get('Authorization');
@@ -11,7 +12,7 @@ module.exports = (req, res, next) => {
   const token = authHeader.split(' ')[1];
   let decodedToken;
   try {
-    decodedToken = jwt.verify(token, 'top-secret-key');
+    decodedToken = jwt.verify(token, 'top_secret_key');
   } catch (err) {
     err.statusCode = 500;
     throw err;
@@ -21,6 +22,6 @@ module.exports = (req, res, next) => {
     error.statusCode = 401;
     throw error;
   }
-  req.userId = decodedToken.id;
+  req.id = decodedToken.id;
   next();
 };
