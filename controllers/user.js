@@ -29,7 +29,7 @@ exports.login = (req, res, next) => {
             const token = jwt.sign(
                 {
                     email: loadedUser.email,
-                    id: loadedUser.id.toString()
+                    userId: loadedUser.id.toString()
                 },
                 'top_secret_key',
                 {
@@ -37,7 +37,7 @@ exports.login = (req, res, next) => {
                 })
             //! set a cookie for the user authentication token JWT.
             // res.cookie('token', token,);
-            res.status(200).json({ token: token, id: loadedUser.id.toString(), isAdmin: loadedUser.is_admin })
+            res.status(200).json({ token: token, userId: loadedUser.id.toString(), isAdmin: loadedUser.is_admin })
             // res.end('Success from api!')
         })
         .catch(err => {
@@ -47,8 +47,6 @@ exports.login = (req, res, next) => {
             next(err)
         })
 }
-
-
 
 // ! SIGNUP CONTROLLER
 // todo: check if email exists already in database.
@@ -71,9 +69,4 @@ exports.createNewUser = (req, res, next) => {
 
 exports.getHello = (req, res, next) => {
     res.json({ message: "Hello from api" })
-}
-
-exports.logout = (req, res, next) => {
-    res.clearCookie('token')
-    res.end()
 }

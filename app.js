@@ -6,43 +6,10 @@ const cookieParser = require('cookie-parser')
 const User = require('./models/user')
 const Activity = require('./models/activity')
 const jwt = require('jsonwebtoken');
-// var { expressjwt: jwt } = require("express-jwt");
-
-
 
 const app = express();
 
 app.use(bodyParser.json());
-
-
-// ! custom getToken function which will look for the token on an incoming cookie
-app.use(cookieParser());
-// app.use(
-//     jwt({
-//         secret: 'top_secret_key',
-//         getToken: req => req.cookies.token,
-//         algorithms: ['HS256']
-//     }).unless({ path: ["/auth/login", "/auth/signup"] })
-// );
-
-// app.use((req, res, next) => {
-//     const token = req.cookies.token
-//     try {
-//         decodedToken = jwt.verify(token, 'top_secret_key');
-//     } catch (err) {
-//         err.statusCode = 500;
-//         throw err;
-//     }
-//     if (!decodedToken) {
-//         const error = new Error('Not authenticated!');
-//         error.statusCode = 401;
-//         throw error;
-//     }
-//     req.userId = decodedToken.id;
-//     next();
-// })
-
-
 
 app.use((req, res, next) => {
     res.setHeader('Access-Control-Allow-Origin', '*')
@@ -76,7 +43,13 @@ app.use(express.static(path.join(__dirname, 'public')))
 
 app.use(userRoutes);
 
-sequelize.sync()
+// * Set relationship between user and activity. *
+Activity.belongsTo(User, { constraints: true, onDelete: 'CASCADE' })
+User.hasMany(Activity)
+
+sequelize
+    // .sync({ force: true })
+    .sync()
     .then(result => {
         app.listen(3000, () => {
             console.log("Database connection is Ready and "

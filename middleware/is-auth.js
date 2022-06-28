@@ -1,5 +1,6 @@
 const jwt = require('jsonwebtoken');
-
+const User = require('../models/user')
+// const Activity = require('./models/activity')
 // * Verify token on requests.
 
 module.exports = (req, res, next) => {
@@ -22,6 +23,8 @@ module.exports = (req, res, next) => {
     error.statusCode = 401;
     throw error;
   }
-  req.id = decodedToken.id;
+  req.userId = decodedToken.userId;
+
+
   next();
-};
+}
