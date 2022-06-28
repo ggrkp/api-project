@@ -16,4 +16,6 @@ router.get('/api/hello', isAuth, userController.getHello);
 
 router.post('/api/add-activities', isAuth, activityController.addActivities);
 
+router.post('/api/file', isAuth, activityController.getFile);
+
 module.exports = router;
