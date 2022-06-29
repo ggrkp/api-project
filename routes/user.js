@@ -23,4 +23,6 @@ router.post('/api/add-activities', isAuth, activityController.postActivities);
 
 router.get('/auth/role', isAuth, userController.getRole)
 
+router.get('/activities/physical-percentage', isAuth, activityController.getPhysicalPercentage)
+
 module.exports = router;

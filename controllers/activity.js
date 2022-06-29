@@ -1,7 +1,46 @@
 const Activity = require('../models/activity')
 const User = require('../models/user')
 const fs = require("fs");
-const fileHelper = require("../utils/file")
+const fileHelper = require("../utils/file");
+const e = require('express');
+const sequelize = require('../database');
+const { QueryTypes } = require('sequelize');
+
+exports.getPhysicalPercentage = (req, res, next) => {
+    const userId = req.userId
+    sequelize.query(`
+        SELECT
+            SUM( CASE 
+                    WHEN 
+                        type='ON_BICYCLE' 
+                        OR 
+                        type='ON_FOOT'
+                        OR 
+                        type='RUNNING' 
+                        OR 
+                        type='WALKING'  
+                    THEN    1 
+                    ELSE    0 
+                    END)    * 100
+                    / 
+                    (SELECT COUNT(*) 
+                        FROM activities 
+                        WHERE userId = $1) AS phPercent
+            FROM activities
+            WHERE userId = $1
+         `,
+        {
+            bind: [userId],
+            type: QueryTypes.SELECT
+        },
+    ).then(records => {
+        console.log(userId)
+        console.log(JSON.stringify(records[0], null, 2))
+        res.json(records[0])
+    })
+}
+
+
 exports.postActivities = (req, res, next) => {
     const userId = req.userId
     const jsonFile = req.file
@@ -48,3 +87,4 @@ exports.postActivities = (req, res, next) => {
         }
     })
 }
+
