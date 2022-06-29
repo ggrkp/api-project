@@ -29,7 +29,7 @@ const fileFilter = (req, file, cb) => {
 
 app.use(multer({
     storage: fileStorage,
-    fileFilter 
+    fileFilter
 }).single('file'))
 
 app.use(bodyParser.json());
@@ -80,4 +80,9 @@ sequelize
                 + "Server is Listening on Port ", 3000);
         })
     })
-    .catch(err => console.error(err))
+    .catch(err => {
+        connsole.log(err.message)
+        return res.status(400).send({
+            message: err.message
+        })
+    })
