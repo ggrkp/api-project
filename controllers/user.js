@@ -30,6 +30,7 @@ exports.postLogin = (req, res, next) => {
             const token = jwt.sign(
                 {
                     email: loadedUser.email,
+                    isAdmin: loadedUser.is_admin,
                     userId: loadedUser.id.toString()
                 },
                 'top_secret_key',
@@ -84,4 +85,9 @@ exports.postSignup = (req, res, next) => {
 
 exports.getHello = (req, res, next) => {
     res.json({ message: "Hello from api" })
+}
+
+
+exports.getRole = (req, res, next) => {
+    res.json({ role: req.role })
 }

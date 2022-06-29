@@ -24,7 +24,12 @@ module.exports = (req, res, next) => {
     throw error;
   }
   req.userId = decodedToken.userId;
-
+  req.isAdmin = decodedToken.isAdmin;
+  if (req.isAdmin) {
+    req.role = 'Admin'
+  } else {
+    req.role = 'User'
+  }
 
   next();
 }

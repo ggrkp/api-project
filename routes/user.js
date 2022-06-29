@@ -3,6 +3,8 @@ const path = require('path');
 const express = require('express');
 
 const isAuth = require('../middleware/is-auth');
+// const isAdmin = require('../middleware/is-admin');
+// const isUser = require('../middleware/is-user');
 
 const { check } = require('express-validator/check');
 
@@ -18,5 +20,7 @@ router.post('/auth/login', userController.postLogin);
 router.get('/api/hello', isAuth, userController.getHello);
 
 router.post('/api/add-activities', isAuth, activityController.postActivities);
+
+router.get('/auth/role', isAuth, userController.getRole)
 
 module.exports = router;

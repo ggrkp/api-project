@@ -1,18 +1,18 @@
 const Activity = require('../models/activity')
 const User = require('../models/user')
 const fs = require("fs");
-
+const fileHelper = require("../utils/file")
 exports.postActivities = (req, res, next) => {
     const userId = req.userId
     const jsonFile = req.file
     if (!jsonFile) {
-        res.status(422)
-        res.error('Invalid file input.')
-        res.end()
+        res.status(422).send('Error uploading. Invalid file input')
+        res.end();
+        return
     }
     fs.readFile("./uploaded/" + req.file.filename, "utf8", (err, jsonString) => {
         if (err) {
-            console.log("File read failed:", err);
+            res.status(400).send('File read failed.')
             return;
         }
         try {
@@ -37,12 +37,14 @@ exports.postActivities = (req, res, next) => {
                 )
             Activity.bulkCreate(activityData)
                 .then(
-                    res.status(200).end('success')
+                    res.status(200).send('success')
                 )
-                .catch((err) => { res.status(500).end('Error uploading!') })
+                .catch((err) => { res.status(400).send('Error uploading!') })
         }
-        catch (err){
+        catch (err) {
+            fileHelper.deleteFile("./uploaded/" + req.file.filename)
             console.log("File read failed:", err)
+            res.status(400).send('Error uploading. Make sure the file is correctly formatted!')
         }
     })
 }
