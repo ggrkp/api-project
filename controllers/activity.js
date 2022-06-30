@@ -69,7 +69,7 @@ exports.getLatestUpload = (req, res, next) => {
         order: [['createdAt', 'DESC']],
     })
     .then(activity => res.status(200).send(activity.createdAt))
-    .catch(err => res.status(500).send('There are no records in the database.'));
+    .catch((err) => res.status(500).send('There are no records in the database.'));
 }
 
 
