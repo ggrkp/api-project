@@ -25,4 +25,8 @@ router.get('/auth/role', isAuth, userController.getRole)
 
 router.get('/activities/physical-percentage', isAuth, activityController.getPhysicalPercentage)
 
+router.get('/activities/records-range', isAuth, activityController.getRecordsRange)
+
+router.get('/activities/latest-upload', isAuth, activityController.getLatestUpload)
+
 module.exports = router;

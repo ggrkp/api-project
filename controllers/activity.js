@@ -41,6 +41,38 @@ exports.getPhysicalPercentage = (req, res, next) => {
 }
 
 
+exports.getRecordsRange = (req, res, next) => {
+    const userId = req.userId
+    sequelize.query(`
+    SELECT
+        MIN(date) as oldestDate,
+        MAX(date) as latestDate
+    FROM activities
+    WHERE userId = $1
+    `,
+        {
+            bind: [userId],
+            type: QueryTypes.SELECT
+        },
+    ).then(records => {
+        console.log(userId)
+        console.log(JSON.stringify(records[0], null, 2))
+        res.json(records[0])
+    })
+}
+
+
+exports.getLatestUpload = (req, res, next) => {
+    const userId = req.userId
+    Activity.findOne({
+        where: { userId: userId },
+        order: [['createdAt', 'DESC']],
+    })
+    .then(activity => res.status(200).send(activity.createdAt))
+    .catch(err => res.status(500).send('There are no records in the database.'));
+}
+
+
 exports.postActivities = (req, res, next) => {
     const userId = req.userId
     const jsonFile = req.file
@@ -71,15 +103,20 @@ exports.postActivities = (req, res, next) => {
                                 userId
                             }
                             activityData.push(locObj)
+                            console.log("hello")
                         })
                     )
+
                 )
+            console.log("finished for each")
+
             Activity.bulkCreate(activityData)
                 .then(
                     res.status(200).send('success')
                 )
                 .catch((err) => { res.status(400).send('Error uploading!') })
         }
+
         catch (err) {
             fileHelper.deleteFile("./uploaded/" + req.file.filename)
             console.log("File read failed:", err)

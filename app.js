@@ -7,8 +7,9 @@ const User = require('./models/user')
 const Activity = require('./models/activity')
 const jwt = require('jsonwebtoken');
 const multer = require('multer')
-
+var cors = require('cors')
 const app = express();
+
 
 const fileStorage = multer.diskStorage({
     destination: (req, file, cb) => {
@@ -27,8 +28,11 @@ const fileFilter = (req, file, cb) => {
     }
 }
 
+app.use(cors())
+
 app.use(multer({
     storage: fileStorage,
+    limits: { fileSize: 8 * 1024 * 1024* 1024 },
     fileFilter
 }).single('file'))
 

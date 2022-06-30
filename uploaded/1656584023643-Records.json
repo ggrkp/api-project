@@ -1,0 +1,129 @@
+{
+  "locations": [{
+    "latitudeE7": 382460437,
+    "longitudeE7": 217336403,
+    "accuracy": 23,
+    "activity": [{
+      "activity": [{
+        "type": "TILTING",
+        "confidence": 100
+      }],
+      "timestamp": "2015-08-25T17:31:18.589Z"
+    }, {
+      "activity": [{
+        "type": "STILL",
+        "confidence": 58
+      }, {
+        "type": "IN_VEHICLE",
+        "confidence": 21
+      }, {
+        "type": "UNKNOWN",
+        "confidence": 16
+      }, {
+        "type": "ON_FOOT",
+        "confidence": 6
+      }, {
+        "type": "WALKING",
+        "confidence": 6
+      }],
+      "timestamp": "2015-08-25T17:31:26.408Z"
+    }],
+    "source": "WIFI",
+    "deviceTag": 1659500973,
+    "timestamp": "2015-08-25T17:31:13.508Z"
+  }, 
+  
+  
+  {
+    "latitudeE7": 382460554,
+    "longitudeE7": 217336199,
+    "accuracy": 11,
+    "source": "WIFI",
+    "deviceTag": 1659500973,
+    "timestamp": "2015-08-25T17:31:59.477Z"
+  }, 
+  
+  {
+    "latitudeE7": 382460220,
+    "longitudeE7": 217336364,
+    "accuracy": 40,
+    "activity": [{
+      "activity": [{
+        "type": "TILTING",
+        "confidence": 100
+      }],
+      "timestamp": "2015-08-25T17:34:00.827Z"
+    }],
+    "source": "WIFI",
+    "deviceTag": 1659500973,
+    "timestamp": "2015-08-25T17:33:35.002Z"
+  }, 
+  
+  {
+    "latitudeE7": 382460329,
+    "longitudeE7": 217336297,
+    "accuracy": 39,
+    "source": "WIFI",
+    "deviceTag": 1659500973,
+    "timestamp": "2015-08-25T17:34:35.042Z"
+  }, 
+  
+  {
+    "latitudeE7": 382460227,
+    "longitudeE7": 217336073,
+    "accuracy": 38,
+    "activity": [{
+      "activity": [{
+        "type": "STILL",
+        "confidence": 100
+      }],
+      "timestamp": "2015-08-25T17:35:58.403Z"
+    }],
+    "source": "WIFI",
+    "deviceTag": 1659500973,
+    "timestamp": "2015-08-25T17:35:36.511Z"
+  }, {
+    "latitudeE7": 382460312,
+    "longitudeE7": 217336436,
+    "accuracy": 40,
+    "source": "WIFI",
+    "deviceTag": 1659500973,
+    "timestamp": "2015-08-25T17:36:37.534Z"
+  }, {
+    "latitudeE7": 382460720,
+    "longitudeE7": 217335748,
+    "accuracy": 45,
+    "source": "WIFI",
+    "deviceTag": 1659500973,
+    "timestamp": "2015-08-25T17:37:38.499Z"
+  }, {
+    "latitudeE7": 382460139,
+    "longitudeE7": 217336327,
+    "accuracy": 40,
+    "activity": [{
+      "activity": [{
+        "type": "STILL",
+        "confidence": 100
+      }],
+      "timestamp": "2015-08-25T17:38:46.460Z"
+    }],
+    "source": "WIFI",
+    "deviceTag": 1659500973,
+    "timestamp": "2015-08-25T17:38:43.474Z"
+  }, {
+    "latitudeE7": 382460203,
+    "longitudeE7": 217336134,
+    "accuracy": 38,
+    "activity": [{
+      "activity": [{
+        "type": "STILL",
+        "confidence": 100
+      }],
+      "timestamp": "2015-08-25T17:41:47.441Z"
+    }],
+    "source": "WIFI",
+    "deviceTag": 1659500973,
+    "timestamp": "2015-08-25T17:39:43.556Z"
+  }
+]
+}
