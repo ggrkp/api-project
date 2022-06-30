@@ -25,7 +25,7 @@ exports.getTotalScore = (req, res, next) => {
                     / 
                     (SELECT COUNT(*) 
                         FROM activities 
-                        WHERE userId = $1) AS phPercent
+                        WHERE userId = $1) AS totalScore
             FROM activities
             WHERE userId = $1
          `,
@@ -62,8 +62,7 @@ exports.getMonthlyScore = (req, res, next) => {
                     ORDER BY MONTH(date)`, {
         bind: [1, 2],
         type: QueryTypes.SELECT
-    },
-    )
+    })
 
     const monthlyTotalActivities = sequelize.query(
         `SELECT COUNT(*) AS totalCount, MONTHNAME(date) as month

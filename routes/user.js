@@ -25,7 +25,7 @@ router.get('/auth/role', isAuth, userController.getRole)
 
 router.get('/activities/get-total-score', isAuth, activityController.getTotalScore)
 
-router.get('/activities/get-monthly-score', activityController.getMonthlyScore)
+router.get('/activities/get-monthly-score', isAuth, activityController.getMonthlyScore)
 
 router.get('/activities/records-range', isAuth, activityController.getRecordsRange)
 
