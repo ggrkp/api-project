@@ -6,7 +6,7 @@ const e = require('express');
 const sequelize = require('../database');
 const { QueryTypes } = require('sequelize');
 
-exports.getPhysicalPercentage = (req, res, next) => {
+exports.getTotalScore = (req, res, next) => {
     const userId = req.userId
     sequelize.query(`
         SELECT
@@ -41,6 +41,71 @@ exports.getPhysicalPercentage = (req, res, next) => {
 }
 
 
+exports.getMonthlyScore = (req, res, next) => {
+    const monthlyPhysicalActivities = sequelize.query(`
+              SELECT
+                SUM( CASE 
+                        WHEN 
+                            type='ON_BICYCLE' 
+                            OR 
+                            type='ON_FOOT'
+                            OR 
+                            type='RUNNING' 
+                            OR 
+                            type='WALKING'  
+                        THEN    1 
+                        ELSE    0 
+                        END) *100 AS totalBodyCount,  MONTHNAME(date) as month
+                    FROM activities
+                    WHERE userId = $1  AND (date >= DATE_SUB(CURDATE(),INTERVAL 12 MONTH))
+                    GROUP BY month
+                    ORDER BY MONTH(date)`, {
+        bind: [1, 2],
+        type: QueryTypes.SELECT
+    },
+    )
+
+    const monthlyTotalActivities = sequelize.query(
+        `SELECT COUNT(*) AS totalCount, MONTHNAME(date) as month
+             FROM activities 
+             WHERE userId = $1  AND (date >= DATE_SUB(CURDATE(),INTERVAL 12 MONTH))
+              GROUP BY month
+              ORDER BY MONTH(date)`, {
+        bind: [1],
+        type: QueryTypes.SELECT
+    })
+
+    Promise
+        .all([monthlyPhysicalActivities, monthlyTotalActivities])
+        .then(responses => {
+            console.log('**********COMPLETE RESULTS****************');
+
+            console.log(responses[0]); // monthlyPhysicalActivities
+            console.log(responses[1]); // monthlyTotalActivities
+
+
+            const percentages = []
+            const months = []
+
+            for (let i = 0; i < responses[0].length; i++) {
+                console.log(responses[0][i].totalBodyCount)
+                percentages.push(+(responses[0][i].totalBodyCount) / +(responses[1][i].totalCount))
+                months.push(responses[0][i].month)
+            }
+            console.log(percentages)
+            console.log(months)
+            const totalResponse = { percentages, months }
+            res.send(totalResponse)
+        })
+
+        .catch(err => {
+            console.log('**********ERROR RESULT****************');
+            console.log(err);
+        });
+}
+
+
+
 exports.getRecordsRange = (req, res, next) => {
     const userId = req.userId
     sequelize.query(`
@@ -68,8 +133,8 @@ exports.getLatestUpload = (req, res, next) => {
         where: { userId: userId },
         order: [['createdAt', 'DESC']],
     })
-    .then(activity => res.status(200).send(activity.createdAt))
-    .catch((err) => res.status(500).send('There are no records in the database.'));
+        .then(activity => res.status(200).send(activity.createdAt))
+        .catch((err) => res.status(500).send('There are no records in the database.'));
 }
 
 
