@@ -1,6 +1,8 @@
 const bcrypt = require('bcrypt')
 const jwt = require('jsonwebtoken')
 const User = require('../models/user')
+const Score = require('../models/score')
+
 
 const { validationResult } = require('express-validator/check')
 // ! LOGIN CONTROLLER
@@ -77,9 +79,20 @@ exports.postSignup = (req, res, next) => {
                     password: hashedPw,
                     is_admin: is_admin,
                 }))
+                .then(() => {
+                    User.findOne({ where: { email: email } })
+                        .then((user) => {
+                            user.createScore({
+                                score: 0
+                            })
+                        })
+                })
                 .then(res.end('success'))
                 .catch((err) => { return res.status(err.statusCode).send(err.message) })
-        }).catch((err) => { return res.status(err.statusCode).send(err.message) })
+        })
+        .catch((err) => { return res.status(err.statusCode).send(err.message) })
+
+
 }
 
 

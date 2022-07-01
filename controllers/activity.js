@@ -1,34 +1,36 @@
+const fs = require("fs");
+const { QueryTypes } = require('sequelize');
+var Sequelize = require('sequelize');
+
 const Activity = require('../models/activity')
 const User = require('../models/user')
-const fs = require("fs");
+const Score = require('../models/score')
 const fileHelper = require("../utils/file");
-const e = require('express');
 const sequelize = require('../database');
-const { QueryTypes } = require('sequelize');
 
 exports.getTotalScore = (req, res, next) => {
     const userId = req.userId
     sequelize.query(`
-        SELECT
-            SUM( CASE 
-                    WHEN 
-                        type='ON_BICYCLE' 
-                        OR 
-                        type='ON_FOOT'
+    SELECT
+    SUM( CASE 
+        WHEN 
+        type='ON_BICYCLE' 
+        OR 
+        type='ON_FOOT'
                         OR 
                         type='RUNNING' 
                         OR 
                         type='WALKING'  
-                    THEN    1 
-                    ELSE    0 
-                    END)    * 100
-                    / 
-                    (SELECT COUNT(*) 
+                        THEN    1 
+                        ELSE    0 
+                        END)    * 100
+                        / 
+                        (SELECT COUNT(*) 
                         FROM activities 
                         WHERE userId = $1) AS totalScore
-            FROM activities
-            WHERE userId = $1
-         `,
+                        FROM activities
+                        WHERE userId = $1
+                        `,
         {
             bind: [userId],
             type: QueryTypes.SELECT
@@ -42,6 +44,7 @@ exports.getTotalScore = (req, res, next) => {
 
 
 exports.getMonthlyScore = (req, res, next) => {
+    const userId = req.userId
     const monthlyPhysicalActivities = sequelize.query(`
               SELECT
                 SUM( CASE 
@@ -60,7 +63,7 @@ exports.getMonthlyScore = (req, res, next) => {
                     WHERE userId = $1  AND (date >= DATE_SUB(CURDATE(),INTERVAL 12 MONTH))
                     GROUP BY month
                     ORDER BY MONTH(date)`, {
-        bind: [1, 2],
+        bind: [userId],
         type: QueryTypes.SELECT
     })
 
@@ -70,7 +73,7 @@ exports.getMonthlyScore = (req, res, next) => {
              WHERE userId = $1  AND (date >= DATE_SUB(CURDATE(),INTERVAL 12 MONTH))
               GROUP BY month
               ORDER BY MONTH(date)`, {
-        bind: [1],
+        bind: [userId],
         type: QueryTypes.SELECT
     })
 
@@ -145,6 +148,8 @@ exports.postActivities = (req, res, next) => {
         res.end();
         return
     }
+
+    // Read the uploaded file.
     fs.readFile("./uploaded/" + req.file.filename, "utf8", (err, jsonString) => {
         if (err) {
             res.status(400).send('File read failed.')
@@ -153,6 +158,8 @@ exports.postActivities = (req, res, next) => {
         try {
             const activityData = []
             const fileObject = JSON.parse(jsonString);
+
+            // Parse the json file and create an array in order to bulk insert records
             fileObject.locations
                 .filter(locItem => locItem.activity !== undefined)
                 .forEach(locItem => locItem.activity
@@ -167,17 +174,61 @@ exports.postActivities = (req, res, next) => {
                                 userId
                             }
                             activityData.push(locObj)
-                            console.log("hello")
                         })
                     )
 
                 )
-            console.log("finished for each")
 
             Activity.bulkCreate(activityData)
-                .then(
-                    res.status(200).send('success')
-                )
+                // After activities are inserted -> update the last months score in the scores table.
+                .then(() => {
+                    sequelize.query(`
+                    SELECT
+                    SUM( CASE 
+                        WHEN 
+                        type='ON_BICYCLE' 
+                        OR 
+                        type='ON_FOOT'
+                                        OR 
+                                        type='RUNNING' 
+                                        OR 
+                                        type='WALKING'  
+                                        THEN    1 
+                                        ELSE    0 
+                                        END)    * 100
+                                        / 
+                                        (SELECT COUNT(*) 
+                                        FROM activities 
+                                        WHERE userId = $1
+                                        AND (date >= DATE_SUB(CURDATE(),INTERVAL 30 DAY))) AS lastMonthScore
+                                        FROM activities
+                                        WHERE userId = $1
+                                        AND (date >= DATE_SUB(CURDATE(),INTERVAL 30 DAY))
+                                        `,
+                        {
+                            bind: [userId],
+                            type: QueryTypes.SELECT
+                        }
+                    )
+                        .then((result) => {
+                            let lastMonthScore
+                            if (result[0].lastMonthScore === null) {
+                                lastMonthScore = 0
+                            } else {
+                                lastMonthScore = +result[0].lastMonthScore
+                            }
+
+                            return (lastMonthScore.toFixed(2));
+                        }).then(lastMonthScore => {
+                            Score
+                                .update(
+                                    { score: lastMonthScore },
+                                    { where: { userId: userId } }
+                                )
+                                .then(() => { console.log("score updated") })
+                        })
+                })
+                .then(res.status(200).send('success'))
                 .catch((err) => { res.status(400).send('Error uploading!') })
         }
 
@@ -189,3 +240,40 @@ exports.postActivities = (req, res, next) => {
     })
 }
 
+
+exports.getLeaders = (req, res) => {
+    const userId = +req.userId
+    // const leaders = Score.findAll({
+    //     limit: 3,
+    //     order: [
+    //         ['score', 'DESC'],
+    //     ],
+    //     attributes: ['score'],
+    //     include: [
+    //         {
+    //             model: User, as: 'user',
+    //             attributes: ['name']
+    //         }
+
+    //     ]
+    // }
+    // )
+    Score.findAll({
+        attributes: [
+            'score', 'userId',
+            [Sequelize.literal('(RANK() OVER (ORDER BY score DESC))'), 'rank']
+        ],
+        include: [
+            {
+                model: User, as: 'user',
+                attributes: ['name'],
+            }
+
+        ]
+    })
+        .then((result) => {
+            console.log('userID' + req.userId)
+            res.json({ result, userId })
+        })
+
+}

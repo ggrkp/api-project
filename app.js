@@ -1,15 +1,21 @@
+// packages
 const express = require('express')
+const multer = require('multer')
+const cors = require('cors')
 const bodyParser = require('body-parser')
 const path = require('path')
-const sequelize = require('./database');
-const cookieParser = require('cookie-parser')
-const User = require('./models/user')
-const Activity = require('./models/activity')
 const jwt = require('jsonwebtoken');
-const multer = require('multer')
-var cors = require('cors')
-const app = express();
 
+// models
+const Activity = require('./models/activity')
+const User = require('./models/user')
+const Score = require('./models/score')
+const userRoutes = require('./routes/user');
+
+//db
+const sequelize = require('./database');
+
+const app = express();
 
 const fileStorage = multer.diskStorage({
     destination: (req, file, cb) => {
@@ -28,16 +34,13 @@ const fileFilter = (req, file, cb) => {
     }
 }
 
-app.use(cors())
-
 app.use(multer({
     storage: fileStorage,
-    limits: { fileSize: 8 * 1024 * 1024* 1024 },
+    limits: { fileSize: 8 * 1024 * 1024 * 1024 },
     fileFilter
 }).single('file'))
 
 app.use(bodyParser.json());
-
 
 app.use((req, res, next) => {
     res.setHeader('Access-Control-Allow-Origin', '*')
@@ -57,23 +60,23 @@ app.use((error, req, res, next) => {
     res.status(status).json({ message: message, data: data })
 })
 
-var cors = require('cors');
-// use it before all route definitions
 app.use(cors())
-// app.use(cors({ origin: 'http://localhost:3000' }));
+
 app.use(express.json());
 
-
-const userRoutes = require('./routes/user');
-
 app.use(bodyParser.urlencoded({ extended: false }));
+
 app.use(express.static(path.join(__dirname, 'public')))
 
 app.use(userRoutes);
 
-// * Set relationship between user and activity. *
+// * Set relationships *
 Activity.belongsTo(User, { constraints: true, onDelete: 'CASCADE' })
 User.hasMany(Activity)
+
+Score.belongsTo(User, { constraints: true, onDelete: 'CASCADE' })
+User.hasOne(Score)
+
 
 sequelize
     // .sync({ force: true })
@@ -89,4 +92,4 @@ sequelize
         return res.status(400).send({
             message: err.message
         })
-    })
+    }) 

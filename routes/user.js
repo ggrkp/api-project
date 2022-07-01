@@ -27,6 +27,8 @@ router.get('/activities/get-total-score', isAuth, activityController.getTotalSco
 
 router.get('/activities/get-monthly-score', isAuth, activityController.getMonthlyScore)
 
+router.get('/activities/get-leaders', isAuth, activityController.getLeaders)
+
 router.get('/activities/records-range', isAuth, activityController.getRecordsRange)
 
 router.get('/activities/latest-upload', isAuth, activityController.getLatestUpload)
