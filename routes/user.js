@@ -3,13 +3,12 @@ const path = require('path');
 const express = require('express');
 
 const isAuth = require('../middleware/is-auth');
-// const isAdmin = require('../middleware/is-admin');
-// const isUser = require('../middleware/is-user');
 
 const { check } = require('express-validator/check');
 
 const userController = require('../controllers/user');
 const activityController = require('../controllers/activity');
+const adminController = require('../controllers/admin');
 
 const router = express.Router()
 
@@ -32,5 +31,7 @@ router.get('/activities/get-leaders', isAuth, activityController.getLeaders)
 router.get('/activities/records-range', isAuth, activityController.getRecordsRange)
 
 router.get('/activities/latest-upload', isAuth, activityController.getLatestUpload)
+
+router.get('/admin/dashboard', adminController.getDashboardData)
 
 module.exports = router;

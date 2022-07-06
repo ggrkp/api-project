@@ -88,7 +88,7 @@ sequelize
         })
     })
     .catch(err => {
-        connsole.log(err.message)
+        console.log(err.message)
         return res.status(400).send({
             message: err.message
         })

@@ -43,6 +43,7 @@ exports.getTotalScore = (req, res, next) => {
 }
 
 
+// monthly scores for the last 12months
 exports.getMonthlyScore = (req, res, next) => {
     const userId = req.userId
     const monthlyPhysicalActivities = sequelize.query(`
@@ -58,7 +59,7 @@ exports.getMonthlyScore = (req, res, next) => {
                             type='WALKING'  
                         THEN    1 
                         ELSE    0 
-                        END) *100 AS totalBodyCount,  MONTHNAME(date) as month
+                        END) *100 AS totalBodyCount,  MONTHNAME(date) as month, MONTH(date) as monthIndex
                     FROM activities
                     WHERE userId = $1  AND (date >= DATE_SUB(CURDATE(),INTERVAL 12 MONTH))
                     GROUP BY month
@@ -68,7 +69,7 @@ exports.getMonthlyScore = (req, res, next) => {
     })
 
     const monthlyTotalActivities = sequelize.query(
-        `SELECT COUNT(*) AS totalCount, MONTHNAME(date) as month
+        `SELECT COUNT(*) AS totalCount, MONTHNAME(date) as month, MONTH(date) as monthIndex
              FROM activities 
              WHERE userId = $1  AND (date >= DATE_SUB(CURDATE(),INTERVAL 12 MONTH))
               GROUP BY month
@@ -77,25 +78,38 @@ exports.getMonthlyScore = (req, res, next) => {
         type: QueryTypes.SELECT
     })
 
+
+    const d = new Date();
+    let currMonth = d.getMonth();
+    const percentages = new Array(12).fill(0);
+    const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
+
     Promise
         .all([monthlyPhysicalActivities, monthlyTotalActivities])
-        .then(responses => {
-            console.log('**********COMPLETE RESULTS****************');
+        .then(data => {
 
-            console.log(responses[0]); // monthlyPhysicalActivities
-            console.log(responses[1]); // monthlyTotalActivities
+            // console.log(data[0]); // monthlyPhysicalActivities
+            // console.log(data[1]); // monthlyTotalActivities
 
 
-            const percentages = []
-            const months = []
 
-            for (let i = 0; i < responses[0].length; i++) {
-                console.log(responses[0][i].totalBodyCount)
-                percentages.push(+(responses[0][i].totalBodyCount) / +(responses[1][i].totalCount))
-                months.push(responses[0][i].month)
+            for (let i = 0; i < data[0].length; i++) {
+
+                percentages[data[0][i].monthIndex - 1] = (+(data[0][i].totalBodyCount) / +(data[1][i].totalCount))
+
+                // percentages.push(+(data[0][i].totalBodyCount) / +(data[1][i].totalCount))
+                // months[data[0][i].monthIndex - 1] = data[0][i].month
+                // months.push(data[0][i].month)
             }
-            console.log(percentages)
-            console.log(months)
+
+            // * Rotate array to display last 12months from current month.
+            for (let i = 0; i < currMonth  ; i++) {
+                percentages.push(percentages.shift())
+                months.push(months.shift())
+            }
+
+            // console.log(percentages)
+            // console.log(months)
             const totalResponse = { percentages, months }
             res.send(totalResponse)
         })
@@ -243,21 +257,6 @@ exports.postActivities = (req, res, next) => {
 
 exports.getLeaders = (req, res) => {
     const userId = +req.userId
-    // const leaders = Score.findAll({
-    //     limit: 3,
-    //     order: [
-    //         ['score', 'DESC'],
-    //     ],
-    //     attributes: ['score'],
-    //     include: [
-    //         {
-    //             model: User, as: 'user',
-    //             attributes: ['name']
-    //         }
-
-    //     ]
-    // }
-    // )
     Score.findAll({
         attributes: [
             'score', 'userId',
@@ -277,3 +276,4 @@ exports.getLeaders = (req, res) => {
         })
 
 }
+
