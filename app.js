@@ -81,15 +81,10 @@ User.hasOne(Score)
 sequelize
     // .sync({ force: true })
     .sync()
-    .then(result => {
-        app.listen(3000, () => {
+    .then(() => {
+        app.listen(3000, (err) => {
+            if (err) {console.log("Error in server setup.")}
             console.log("Database connection is Ready and "
                 + "Server is Listening on Port ", 3000);
         })
-    })
-    .catch(err => {
-        console.log(err.message)
-        return res.status(400).send({
-            message: err.message
-        })
-    }) 
+    })   

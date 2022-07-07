@@ -8,14 +8,6 @@ const sequelize = require('../database');
 
 
 exports.getDashboardData = (req, res) => {
-    // Returns all data for the admin dashboard. (Charts and tables)
-    // Multiple promises.
-    // const activitiesPerPerson = Activity.count({
-    //     // todo: inner join with user table to show all id even if zero
-    //     attributes: [
-    //         'userId'],
-    //     group: 'userId'
-    // });
 
     const activitiesPerPerson = sequelize.query(`
     select users.name  as userName ,count(activities.activity_id) as countPerUser
