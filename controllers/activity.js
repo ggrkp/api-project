@@ -178,7 +178,8 @@ exports.postActivities = (req, res) => {
                             longtitude: locItem.longitudeE7 / 10000000,
                             accuracy: locItem.accuracy,
                             date: locItem.timestamp,
-                            userId
+                            userId,
+                            value: 1
                         }
                         activityData.push(locObj)
                     })

@@ -103,13 +103,19 @@ exports.getDashboardData = (req, res) => {
 }
 
 exports.getHeatmapData = (req, res) => {
+    const latlonArr = []
     Activity.findAll({
-       
         attributes: [
-            'latitude', 'longtitude', 
+            'latitude',
+            'longtitude',
+            'value'
         ]
     }).then(result => {
-        res.json(result)
+        result.forEach(item => {
+            latlonArr.push([item.latitude, item.longtitude, item.value])
+        })
+        console.log(latlonArr)
+        res.send(latlonArr)
     })
 
 }

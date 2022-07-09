@@ -24,6 +24,9 @@ const Activity = sequelize.define('activity',
         },
         date: {
             type: Sequelize.DATE
+        },
+        value:{
+            type: Sequelize.INTEGER
         }
     },
     // {
