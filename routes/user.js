@@ -34,4 +34,6 @@ router.get('/activities/latest-upload', isAuth, activityController.getLatestUplo
 
 router.get('/admin/dashboard', adminController.getDashboardData)
 
+router.get('/admin/heatmap', adminController.getHeatmapData)
+
 module.exports = router;

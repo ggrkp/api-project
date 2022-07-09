@@ -6,7 +6,9 @@ const Activity = require('../models/activity')
 const User = require('../models/user')
 const Score = require('../models/score')
 const fileHelper = require("../utils/file");
-const sequelize = require('../database');
+const sequelize = require('../database')
+const _ = require('lodash')
+const JSONStream = require('JSONStream')
 
 exports.getTotalScore = (req, res, next) => {
     const userId = req.userId
@@ -103,7 +105,7 @@ exports.getMonthlyScore = (req, res, next) => {
             }
 
             // * Rotate array to display last 12months from current month.
-            for (let i = 0; i < currMonth  ; i++) {
+            for (let i = 0; i < currMonth; i++) {
                 percentages.push(percentages.shift())
                 months.push(months.shift())
             }
@@ -154,105 +156,148 @@ exports.getLatestUpload = (req, res, next) => {
 }
 
 
-exports.postActivities = (req, res, next) => {
+exports.postActivities = (req, res) => {
     const userId = req.userId
     const jsonFile = req.file
-    if (!jsonFile) {
-        res.status(422).send('Error uploading. Invalid file input')
-        res.end();
-        return
-    }
+    const activityData = []
+    var stream = fs.createReadStream(`./uploaded/${req.file.filename}`, { encoding: 'utf8' }),
+        parser = JSONStream.parse('locations');
 
-    // Read the uploaded file.
-    fs.readFile("./uploaded/" + req.file.filename, "utf8", (err, jsonString) => {
-        if (err) {
-            res.status(400).send('File read failed.')
-            return;
-        }
-        try {
-            const activityData = []
-            const fileObject = JSON.parse(jsonString);
+    stream.pipe(parser);
 
-            // Parse the json file and create an array in order to bulk insert records
-            fileObject.locations
-                .filter(locItem => locItem.activity !== undefined)
-                .forEach(locItem => locItem.activity
-                    .forEach(outerAct => outerAct.activity
-                        .forEach(innerAct => {
-                            const locObj = {
-                                type: innerAct.type,
-                                latitude: locItem.latitudeE7 / 10000000,
-                                longtitude: locItem.longitudeE7 / 10000000,
-                                accuracy: locItem.accuracy,
-                                date: locItem.timestamp,
-                                userId
-                            }
-                            activityData.push(locObj)
-                        })
-                    )
-
+    parser.on('data', function (arr) {
+        // console.log(obj); // whatever you will do with each JSON object
+        arr
+            .filter(locItem => locItem.activity !== undefined)
+            .forEach(locItem => locItem.activity
+                .forEach(outerAct => outerAct.activity
+                    .forEach(innerAct => {
+                        const locObj = {
+                            type: innerAct.type,
+                            latitude: locItem.latitudeE7 / 10000000,
+                            longtitude: locItem.longitudeE7 / 10000000,
+                            accuracy: locItem.accuracy,
+                            date: locItem.timestamp,
+                            userId
+                        }
+                        activityData.push(locObj)
+                    })
                 )
 
-            Activity.bulkCreate(activityData)
-                // After activities are inserted -> update the last months score in the scores table.
-                .then(() => {
-                    sequelize.query(`
-                    SELECT
-                    SUM( CASE 
-                        WHEN 
-                        type='ON_BICYCLE' 
-                        OR 
-                        type='ON_FOOT'
-                                        OR 
-                                        type='RUNNING' 
-                                        OR 
-                                        type='WALKING'  
-                                        THEN    1 
-                                        ELSE    0 
-                                        END)    * 100
-                                        / 
-                                        (SELECT COUNT(*) 
-                                        FROM activities 
-                                        WHERE userId = $1
-                                        AND (date >= DATE_SUB(CURDATE(),INTERVAL 30 DAY))) AS lastMonthScore
-                                        FROM activities
-                                        WHERE userId = $1
-                                        AND (date >= DATE_SUB(CURDATE(),INTERVAL 30 DAY))
-                                        `,
-                        {
-                            bind: [userId],
-                            type: QueryTypes.SELECT
-                        }
-                    )
-                        .then((result) => {
-                            let lastMonthScore
-                            if (result[0].lastMonthScore === null) {
-                                lastMonthScore = 0
-                            } else {
-                                lastMonthScore = +result[0].lastMonthScore
-                            }
+            )
+        // console.log(activityData);
+        const chunks = _.chunk(activityData, 100)
+        const forLoop = async _ => {
 
-                            return (lastMonthScore.toFixed(2));
-                        }).then(lastMonthScore => {
-                            Score
-                                .update(
-                                    { score: lastMonthScore },
-                                    { where: { userId: userId } }
-                                )
-                                .then(() => { console.log("score updated") })
-                        })
-                })
-                .then(res.status(200).send('success'))
-                .catch((err) => { res.status(400).send('Error uploading!') })
+            for (let chunk in chunks) {
+                // console.log(chunks[chunk])
+                Activity.bulkCreate(chunks[chunk]).then(console.log('wow!'))
+            }
         }
-
-        catch (err) {
-            fileHelper.deleteFile("./uploaded/" + req.file.filename)
-            console.log("File read failed:", err)
-            res.status(400).send('Error uploading. Make sure the file is correctly formatted!')
-        }
+        forLoop().then(res.status(200).send('gotit!'))
     })
+
 }
+
+
+// exports.postActivities = (req, res, next) => {
+//     const userId = req.userId
+//     const jsonFile = req.file
+//     if (!jsonFile) {
+//         res.status(422).send('Error uploading. Invalid file input')
+//         res.end();
+//         return
+//     }
+//     // Read the uploaded file.
+//     fs.readFile("./uploaded/" + req.file.filename, "utf8", (err, jsonString) => {
+//         if (err) {
+//             res.status(400).send('File read failed.')
+//             return;
+//         }
+//         try {
+//             const activityData = []
+//             const fileObject = JSON.parse(jsonString);
+
+//             // Parse the json file and create an array in order to bulk insert records
+// fileObject.locations
+//     .filter(locItem => locItem.activity !== undefined)
+//     .forEach(locItem => locItem.activity
+//         .forEach(outerAct => outerAct.activity
+//             .forEach(innerAct => {
+//                 const locObj = {
+//                     type: innerAct.type,
+//                     latitude: locItem.latitudeE7 / 10000000,
+//                     longtitude: locItem.longitudeE7 / 10000000,
+//                     accuracy: locItem.accuracy,
+//                     date: locItem.timestamp,
+//                     userId
+//                 }
+//                 activityData.push(locObj)
+//             })
+//         )
+
+//     )
+
+//             Activity.bulkCreate(activityData)
+//                 // After activities are inserted -> update the last months score in the scores table.
+//                 .then(() => {
+//                     sequelize.query(`
+//                     SELECT
+//                     SUM( CASE 
+//                         WHEN 
+//                         type='ON_BICYCLE' 
+//                         OR 
+//                         type='ON_FOOT'
+//                                         OR 
+//                                         type='RUNNING' 
+//                                         OR 
+//                                         type='WALKING'  
+//                                         THEN    1 
+//                                         ELSE    0 
+//                                         END)    * 100
+//                                         / 
+//                                         (SELECT COUNT(*) 
+//                                         FROM activities 
+//                                         WHERE userId = $1
+//                                         AND (date >= DATE_SUB(CURDATE(),INTERVAL 30 DAY))) AS lastMonthScore
+//                                         FROM activities
+//                                         WHERE userId = $1
+//                                         AND (date >= DATE_SUB(CURDATE(),INTERVAL 30 DAY))
+//                                         `,
+//                         {
+//                             bind: [userId],
+//                             type: QueryTypes.SELECT
+//                         }
+//                     )
+//                         .then((result) => {
+//                             let lastMonthScore
+//                             if (result[0].lastMonthScore === null) {
+//                                 lastMonthScore = 0
+//                             } else {
+//                                 lastMonthScore = +result[0].lastMonthScore
+//                             }
+
+//                             return (lastMonthScore.toFixed(2));
+//                         }).then(lastMonthScore => {
+//                             Score
+//                                 .update(
+//                                     { score: lastMonthScore },
+//                                     { where: { userId: userId } }
+//                                 )
+//                                 .then(() => { console.log("score updated") })
+//                         })
+//                 })
+//                 .then(res.status(200).send('success'))
+//                 .catch((err) => { res.status(400).send('Error uploading!') })
+//         }
+
+//         catch (err) {
+//             fileHelper.deleteFile("./uploaded/" + req.file.filename)
+//             console.log("File read failed:", err)
+//             res.status(400).send('Error uploading. Make sure the file is correctly formatted!')
+//         }
+//     })
+// }
 
 
 exports.getLeaders = (req, res) => {

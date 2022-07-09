@@ -15,7 +15,6 @@ exports.getDashboardData = (req, res) => {
     left join activities on users.id=activities.userId 
     group by users.id 
     `,
-
         {
             type: QueryTypes.SELECT
         },
@@ -70,7 +69,7 @@ exports.getDashboardData = (req, res) => {
     // Promise.all([activitiesPerPerson, activitiesPerDay, activitiesPerMonth, activitiesPerYear, percentagePerActivity]).then((data) => {
 
 
-    Promise.all([activitiesPerMonth, activitiesPerPerson, activitiesPerDay, activitiesPerYear, typePercentage, ]).then((data) => {
+    Promise.all([activitiesPerMonth, activitiesPerPerson, activitiesPerDay, activitiesPerYear, typePercentage,]).then((data) => {
 
         // todo: maybe create helper function.
         // monthly activities
@@ -101,4 +100,16 @@ exports.getDashboardData = (req, res) => {
     })
 
 
-}           
+}
+
+exports.getHeatmapData = (req, res) => {
+    Activity.findAll({
+       
+        attributes: [
+            'latitude', 'longtitude', 
+        ]
+    }).then(result => {
+        res.json(result)
+    })
+
+}
