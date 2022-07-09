@@ -32,8 +32,8 @@ router.get('/activities/records-range', isAuth, activityController.getRecordsRan
 
 router.get('/activities/latest-upload', isAuth, activityController.getLatestUpload)
 
-router.get('/admin/dashboard', adminController.getDashboardData)
+router.get('/admin/dashboard',isAuth, adminController.getDashboardData)
 
-router.get('/admin/heatmap', adminController.getHeatmapData)
+router.get('/admin/heatmap',isAuth, adminController.getHeatmapData)
 
 module.exports = router;

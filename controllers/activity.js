@@ -152,7 +152,7 @@ exports.getLatestUpload = (req, res, next) => {
         order: [['createdAt', 'DESC']],
     })
         .then(activity => res.status(200).send(activity.createdAt))
-        .catch((err) => res.status(500).send('There are no records in the database.'));
+        .catch((err) => res.status(500).send(err.message));
 }
 
 
@@ -195,7 +195,55 @@ exports.postActivities = (req, res) => {
                 Activity.bulkCreate(chunks[chunk]).then(console.log('wow!'))
             }
         }
-        forLoop().then(res.status(200).send('gotit!'))
+        forLoop().then(() => {
+            sequelize.query(`
+            SELECT
+            SUM( CASE 
+                WHEN 
+                type='ON_BICYCLE' 
+                OR 
+                type='ON_FOOT'
+                                OR 
+                                type='RUNNING' 
+                                OR 
+                                type='WALKING'  
+                                THEN    1 
+                                ELSE    0 
+                                END)    * 100
+                                / 
+                                (SELECT COUNT(*) 
+                                FROM activities 
+                                WHERE userId = $1
+                                AND (date >= DATE_SUB(CURDATE(),INTERVAL 30 DAY))) AS lastMonthScore
+                                FROM activities
+                                WHERE userId = $1
+                                AND (date >= DATE_SUB(CURDATE(),INTERVAL 30 DAY))
+                                `,
+                {
+                    bind: [userId],
+                    type: QueryTypes.SELECT
+                }
+            )
+                .then((result) => {
+                    let lastMonthScore
+                    if (result[0].lastMonthScore === null) {
+                        lastMonthScore = 0
+                    } else {
+                        lastMonthScore = +result[0].lastMonthScore
+                    }
+
+                    return (lastMonthScore.toFixed(2));
+                }).then(lastMonthScore => {
+                    Score
+                        .update(
+                            { score: lastMonthScore },
+                            { where: { userId: userId } }
+                        )
+                        .then(() => { console.log("score updated") })
+                })
+        }).then(() => {
+            res.status(200).send('done')
+        })
     })
 
 }
@@ -241,63 +289,63 @@ exports.postActivities = (req, res) => {
 
 //             Activity.bulkCreate(activityData)
 //                 // After activities are inserted -> update the last months score in the scores table.
-//                 .then(() => {
-//                     sequelize.query(`
-//                     SELECT
-//                     SUM( CASE 
-//                         WHEN 
-//                         type='ON_BICYCLE' 
-//                         OR 
-//                         type='ON_FOOT'
-//                                         OR 
-//                                         type='RUNNING' 
-//                                         OR 
-//                                         type='WALKING'  
-//                                         THEN    1 
-//                                         ELSE    0 
-//                                         END)    * 100
-//                                         / 
-//                                         (SELECT COUNT(*) 
-//                                         FROM activities 
-//                                         WHERE userId = $1
-//                                         AND (date >= DATE_SUB(CURDATE(),INTERVAL 30 DAY))) AS lastMonthScore
-//                                         FROM activities
-//                                         WHERE userId = $1
-//                                         AND (date >= DATE_SUB(CURDATE(),INTERVAL 30 DAY))
-//                                         `,
-//                         {
-//                             bind: [userId],
-//                             type: QueryTypes.SELECT
+//             .then(() => {
+//                 sequelize.query(`
+//                 SELECT
+//                 SUM( CASE 
+//                     WHEN 
+//                     type='ON_BICYCLE' 
+//                     OR 
+//                     type='ON_FOOT'
+//                                     OR 
+//                                     type='RUNNING' 
+//                                     OR 
+//                                     type='WALKING'  
+//                                     THEN    1 
+//                                     ELSE    0 
+//                                     END)    * 100
+//                                     / 
+//                                     (SELECT COUNT(*) 
+//                                     FROM activities 
+//                                     WHERE userId = $1
+//                                     AND (date >= DATE_SUB(CURDATE(),INTERVAL 30 DAY))) AS lastMonthScore
+//                                     FROM activities
+//                                     WHERE userId = $1
+//                                     AND (date >= DATE_SUB(CURDATE(),INTERVAL 30 DAY))
+//                                     `,
+//                     {
+//                         bind: [userId],
+//                         type: QueryTypes.SELECT
+//                     }
+//                 )
+//                     .then((result) => {
+//                         let lastMonthScore
+//                         if (result[0].lastMonthScore === null) {
+//                             lastMonthScore = 0
+//                         } else {
+//                             lastMonthScore = +result[0].lastMonthScore
 //                         }
-//                     )
-//                         .then((result) => {
-//                             let lastMonthScore
-//                             if (result[0].lastMonthScore === null) {
-//                                 lastMonthScore = 0
-//                             } else {
-//                                 lastMonthScore = +result[0].lastMonthScore
-//                             }
 
-//                             return (lastMonthScore.toFixed(2));
-//                         }).then(lastMonthScore => {
-//                             Score
-//                                 .update(
-//                                     { score: lastMonthScore },
-//                                     { where: { userId: userId } }
-//                                 )
-//                                 .then(() => { console.log("score updated") })
-//                         })
-//                 })
-//                 .then(res.status(200).send('success'))
-//                 .catch((err) => { res.status(400).send('Error uploading!') })
-//         }
+//                         return (lastMonthScore.toFixed(2));
+//                     }).then(lastMonthScore => {
+//                         Score
+//                             .update(
+//                                 { score: lastMonthScore },
+//                                 { where: { userId: userId } }
+//                             )
+//                             .then(() => { console.log("score updated") })
+//                     })
+//             })
+//             .then(res.status(200).send('success'))
+//             .catch((err) => { res.status(400).send('Error uploading!') })
+//     }
 
-//         catch (err) {
-//             fileHelper.deleteFile("./uploaded/" + req.file.filename)
-//             console.log("File read failed:", err)
-//             res.status(400).send('Error uploading. Make sure the file is correctly formatted!')
-//         }
-//     })
+//     catch (err) {
+//         fileHelper.deleteFile("./uploaded/" + req.file.filename)
+//         console.log("File read failed:", err)
+//         res.status(400).send('Error uploading. Make sure the file is correctly formatted!')
+//     }
+// })
 // }
 
 
