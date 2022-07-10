@@ -105,7 +105,7 @@ exports.getMonthlyScore = (req, res, next) => {
             }
 
             // * Rotate array to display last 12months from current month.
-            for (let i = 0; i < currMonth; i++) {
+            for (let i = 0; i <= currMonth; i++) {
                 percentages.push(percentages.shift())
                 months.push(months.shift())
             }
@@ -157,6 +157,7 @@ exports.getLatestUpload = (req, res, next) => {
 
 
 exports.postActivities = (req, res) => {
+
     const userId = req.userId
     const jsonFile = req.file
     const activityData = []
@@ -172,16 +173,23 @@ exports.postActivities = (req, res) => {
             .forEach(locItem => locItem.activity
                 .forEach(outerAct => outerAct.activity
                     .forEach(innerAct => {
-                        const locObj = {
-                            type: innerAct.type,
-                            latitude: locItem.latitudeE7 / 10000000,
-                            longtitude: locItem.longitudeE7 / 10000000,
-                            accuracy: locItem.accuracy,
-                            date: locItem.timestamp,
-                            userId,
-                            value: 1
+                        let locObj = null
+                        if (innerAct.type !== 'EXITING_VEHICLE' &&
+                            innerAct.type !== 'STILL' &&
+                            innerAct.type !== 'UNKNOWN' &&
+                            innerAct.type !== 'TILTING'
+                        ) {
+                            locObj = {
+                                type: innerAct.type,
+                                latitude: locItem.latitudeE7 / 10000000,
+                                longtitude: locItem.longitudeE7 / 10000000,
+                                accuracy: locItem.accuracy,
+                                date: locItem.timestamp,
+                                userId,
+                                value: 1
+                            }
                         }
-                        activityData.push(locObj)
+                        locObj && activityData.push(locObj)
                     })
                 )
 
