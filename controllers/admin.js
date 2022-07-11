@@ -111,11 +111,54 @@ exports.getHeatmapData = (req, res) => {
             'value'
         ]
     }).then(result => {
-        result.forEach(item => {
-            latlonArr.push([item.latitude, item.longtitude, item.value])
-        })
-        console.log(latlonArr)
-        res.send(latlonArr)
+        // result.forEach(item => {
+        //     latlonArr.push([item.latitude, item.longtitude, item.value])
+        // })
+        // console.log(latlonArr)
+        // res.send(latlonArr)
+        console.log(result)
+        res.send(result)
+    })
+
+}
+exports.getMapRange = (req, res) => {
+
+    let { fromYear, toYear, fromMonth, toMonth } = req.body
+    if (fromMonth === '') {
+        fromMonth = 1
+    }
+    if (toMonth === '') {
+        toMonth = 12
+    }
+
+    if(fromYear === ''){
+        fromYear = 1900
+    }
+
+    if(toYear === ''){
+        toYear = 5000
+    }
+
+    sequelize.query(`
+    SELECT latitude, longtitude, value 
+        FROM activities 
+            WHERE 
+                (YEAR(date) BETWEEN $1 and $2) 
+            AND 
+                (MONTH(date) BETWEEN $3 AND $4) 
+    `,
+        {
+            bind: [fromYear, toYear, fromMonth, toMonth],
+            type: QueryTypes.SELECT
+        },
+    ).then(result => {
+        // result.forEach(item => {
+        //     latlonArr.push([item.latitude, item.longtitude, item.value])
+        // })
+        // console.log(latlonArr)
+        // res.send(latlonArr)
+        console.log(result)
+        res.send(result)
     })
 
 }
